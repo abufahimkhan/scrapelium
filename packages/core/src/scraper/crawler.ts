@@ -9,7 +9,14 @@ import { detectAndExtractProduct } from "./productDetector.js";
 
 const SKIP_EXTENSIONS =
   /\.(jpg|jpeg|png|gif|svg|webp|pdf|zip|css|js|ico|woff2?|mp4)(\?.*)?$/i;
-const PRODUCT_PATH_HINTS = ["/product/", "/products/", "/item/", "/p/"];
+const PRODUCT_PATH_HINTS = [
+  "/product/",
+  "/products/",
+  "/item/",
+  "/p/",
+  "/shop/",
+  "/detail/",
+];
 export const CRAWL_CONCURRENCY = 4;
 const NAV_TIMEOUT_MS = 15000;
 
