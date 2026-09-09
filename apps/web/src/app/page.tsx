@@ -28,7 +28,7 @@ export default function Home() {
 
     // --- Tab 1: scrape ---
     const [url, setUrl] = useState("");
-    const [maxPages, setMaxPages] = useState(15);
+    const [maxPages, setMaxPages] = useState<number | "">(15);
     const [uploadImages, setUploadImages] = useState(false);
     const [jobId, setJobId] = useState<string | null>(null);
     const [job, setJob] = useState<ScrapeJob | null>(null);

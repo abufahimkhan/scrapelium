@@ -1,4 +1,3 @@
-import { chromium } from "playwright";
 import {
   ScrapeOptionsSchema,
   type Product,
@@ -15,6 +14,7 @@ import {
 import { runInBatches } from "./concurrency.js";
 import { uploadProductImages } from "./images.js";
 import { createProductsDb, insertProducts } from "./db.js";
+import { launchScraperBrowser } from "./browser.js";
 
 export interface ScrapeResult {
   products: Product[];
@@ -47,7 +47,7 @@ export async function scrapeSite(
     options.maxPages,
   );
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchScraperBrowser();
   let products: Product[] = [];
   let pagesVisited = 0;
   let source: "sitemap" | "crawl" = "sitemap";
