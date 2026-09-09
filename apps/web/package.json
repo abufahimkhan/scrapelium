@@ -15,7 +15,6 @@
         "xlsx": "^0.18.5"
     },
     "devDependencies": {
-        "@scrapelium/core": "workspace:*",
         "@types/node": "^22.5.4",
         "@types/papaparse": "^5.3.14",
         "@types/react": "^18.3.5",

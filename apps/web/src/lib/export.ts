@@ -1,9 +1,17 @@
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
-import type { Product } from "@scrapelium/core";
 
-// Reimplemented client-side (rather than importing @scrapelium/core's export module at runtime)
-// so the browser bundle doesn't pull in the core package's Node-only deps (better-sqlite3, playwright).
+type Product = {
+  id: string | number | null;
+  url: string | null;
+  name: string | null;
+  description: string | null;
+  price: number | string | null;
+  currency: string | null;
+  images: string[];
+  sku: string | null;
+};
+
 const FIELDS = [
   "id",
   "url",
