@@ -104,18 +104,65 @@ The scraper checks `robots.txt`, tries `sitemap.xml` first, and otherwise crawls
 
 Files exported by Scrapelium can be uploaded back into the app. CSV and XLSX files store multiple image URLs as a comma-separated `images` value.
 
-## Optional Cloudinary Image Uploads
+## Cloudinary Image Mirroring
 
-Scrapelium can replace extracted image URLs with Cloudinary-hosted URLs through an unsigned upload preset. This is opt-in and needs your own Cloudinary configuration.
+Cloudinary mirroring is optional. When enabled, Scrapelium copies the product images it discovers into your own Cloudinary account and replaces the original store image URLs in the resulting product data with Cloudinary HTTPS URLs.
 
-Set these environment variables before starting the API:
+### Connect a Cloudinary account
 
-```powershell
-$env:CLOUDINARY_CLOUD_NAME = "your-cloud-name"
-$env:CLOUDINARY_UPLOAD_PRESET = "your-unsigned-upload-preset"
+1. Open the Scrapelium workspace.
+2. Select **Cloudinary Mirror**.
+3. Enter the Cloudinary account's **Cloud name**, **API key**, and **API secret**.
+4. Select **Validate & connect**.
+
+Scrapelium sends the credentials only to its backend running locally on your computer. The backend calls Cloudinary's API to verify that the credentials work before saving them. The API key and API secret are encrypted locally with AES-256-GCM, and the encryption key is stored separately in the operating system's application-data directory. Scrapelium does not send these credentials to the Scrapelium website or to a Scrapelium cloud server.
+
+This is an API-credential connection rather than a Cloudinary web login or OAuth window. Cloudinary credentials are available from the API Keys section of the Cloudinary Console and should never be shared or committed to this repository.
+
+### Scrape and mirror images
+
+1. Enter the storefront URL and page limit.
+2. Enable **Cloudinary mirror**.
+3. Start the scan.
+
+During the scan, Scrapelium discovers product pages and extracts their names, descriptions, prices, currencies, SKUs, product URLs, and image URLs. For every discovered image, the local backend uses the active encrypted Cloudinary account to perform an authenticated upload. Cloudinary downloads the source image, stores it in your Media Library, and returns a secure URL. Scrapelium then uses that URL in the product record:
+
+```text
+Store image URL
+    -> Scrapelium local backend
+    -> Your Cloudinary account
+    -> Cloudinary secure HTTPS URL
+    -> Scrapelium product record and exports
 ```
 
-Then check **Upload images to Cloudinary** before starting a scrape. Image uploads run with a concurrency limit of three. Failed image uploads retain the original image URL rather than failing the scrape.
+Image uploads use a global concurrency limit of three. If an individual image cannot be uploaded, the scrape continues and that image keeps its original store URL. Successfully mirrored images keep their Cloudinary URLs.
+
+### Product exports
+
+JSON, CSV, and XLSX exports contain the resulting Cloudinary URLs. For example:
+
+```json
+{
+  "name": "Example product",
+  "images": [
+    "https://res.cloudinary.com/your-cloud/image/upload/..."
+  ]
+}
+```
+
+The exported image continues to load from Cloudinary independently of Scrapelium as long as the asset remains available in your Cloudinary account.
+
+### Logout or switch accounts
+
+Select **Logout / Switch Account** to clear the active Cloudinary credentials from Scrapelium's local database. You can then connect another Cloudinary account or use Google Cloud Storage instead. Logging out does not delete images already uploaded to Cloudinary, and deleting products from Scrapelium does not remove their Cloudinary assets.
+
+### Current behavior and limits
+
+- Uploads count against your Cloudinary storage, bandwidth, and transformation allowance.
+- Repeating the same scrape can create duplicate Cloudinary assets because automatic deduplication is not currently implemented.
+- Uploaded images currently use Cloudinary-generated identifiers and are not organized into storefront or product folders.
+- If the local encryption key is deleted, saved credentials cannot be decrypted and the account must be connected again.
+- Cloudinary credentials are tied to the active local workspace. They are not bundled into installers or exported product files.
 
 ## Command-Line Scraping
 

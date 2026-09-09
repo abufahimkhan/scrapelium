@@ -62,8 +62,13 @@ export default function Workspace() {
     }, []);
 
     async function startScrape() {
+        if (pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+        }
         setScrapeError(null);
         setJob(null);
+        setJobId(null);
 
         try {
             if (uploadImages && !storageStatus.connected) throw new Error("Connect a Cloudinary or Google Cloud account before mirroring images");
@@ -79,13 +84,20 @@ export default function Workspace() {
             const { jobId: newJobId } = (await res.json()) as { jobId: string };
             setJobId(newJobId);
 
-            if (pollRef.current) clearInterval(pollRef.current);
             pollRef.current = setInterval(async () => {
-                const statusRes = await apiFetch(`/api/scrape/${newJobId}`);
-                const statusBody = (await statusRes.json()) as ScrapeJob;
-                setJob(statusBody);
-                if (statusBody.status === "done" || statusBody.status === "error") {
+                try {
+                    const statusRes = await apiFetch(`/api/scrape/${newJobId}`);
+                    if (!statusRes.ok) throw new Error(`Status request failed (${statusRes.status})`);
+                    const statusBody = (await statusRes.json()) as ScrapeJob;
+                    setJob(statusBody);
+                    if (statusBody.status === "done" || statusBody.status === "error") {
+                        if (pollRef.current) clearInterval(pollRef.current);
+                        pollRef.current = null;
+                    }
+                } catch (error) {
                     if (pollRef.current) clearInterval(pollRef.current);
+                    pollRef.current = null;
+                    setScrapeError((error as Error).message);
                 }
             }, 2000);
         } catch (err) {

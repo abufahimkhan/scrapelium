@@ -1,4 +1,4 @@
-import type { BrowserContext } from "playwright";
+import type { BrowserContext, Page } from "playwright";
 import {
   ProductSchema,
   type Product,
@@ -19,6 +19,11 @@ const PRODUCT_PATH_HINTS = [
 ];
 export const CRAWL_CONCURRENCY = 4;
 const NAV_TIMEOUT_MS = 15000;
+const CLIENT_RENDER_SETTLE_MS = 1500;
+
+async function waitForClientRenderedContent(page: Page): Promise<void> {
+  await page.waitForTimeout(CLIENT_RENDER_SETTLE_MS);
+}
 
 function isLikelyProductUrl(url: string): boolean {
   try {
@@ -77,6 +82,7 @@ export async function fetchProductFromUrl(
       waitUntil: "domcontentloaded",
       timeout: NAV_TIMEOUT_MS,
     });
+    await waitForClientRenderedContent(page);
     const detected = await detectAndExtractProduct(page, url);
     return detected ? toProduct(detected) : null;
   } catch (err) {
@@ -108,7 +114,12 @@ async function visitAndCollectLinks(
       waitUntil: "domcontentloaded",
       timeout: NAV_TIMEOUT_MS,
     });
+    await waitForClientRenderedContent(page);
     const detected = await detectAndExtractProduct(page, url);
+    const product = detected ? toProduct(detected) : null;
+    // A direct product URL is a terminal page. Following its recommendations,
+    // navigation, and footer would mix unrelated products into the requested result.
+    if (product) return { product, links: [] };
     let links: string[] = [];
     if (collectLinks) {
       const raw = await page.$$eval("a[href]", (as) =>
@@ -116,7 +127,7 @@ async function visitAndCollectLinks(
       );
       links = raw.map((link) => link.split("#")[0]).filter(Boolean);
     }
-    return { product: detected ? toProduct(detected) : null, links };
+    return { product: null, links };
   } catch (err) {
     console.warn(`[scrapelium] failed to load ${url}:`, (err as Error).message);
     return { product: null, links: [] };

@@ -15,6 +15,8 @@ interface JsonLdOffer {
 
 interface JsonLdProduct {
   "@type"?: string | string[];
+  "@id"?: string;
+  url?: string;
   name?: string;
   description?: string;
   sku?: string;
@@ -61,6 +63,36 @@ function normalizeOffer(
   return Array.isArray(offers) ? offers[0] : offers;
 }
 
+function sameDocumentUrl(candidate: string | undefined, current: string): boolean {
+  if (!candidate) return false;
+  try {
+    const left = new URL(candidate);
+    const right = new URL(current);
+    return left.origin === right.origin && left.pathname.replace(/\/$/, "") === right.pathname.replace(/\/$/, "");
+  } catch { return false; }
+}
+
+function isListingUrl(url: string): boolean {
+  try {
+    return /\/(catalog|category|categories|collections?|search)(\/|$)/i.test(new URL(url).pathname);
+  } catch { return false; }
+}
+
+async function extractVisiblePrice(page: Page): Promise<{ price: number | null; currency: string | null }> {
+  const priceText = await page
+    .locator('[itemprop="price"], .product-price, [class*="price"]')
+    .first()
+    .innerText()
+    .catch(() => "");
+  const bodyText = priceText || await page.locator("body").innerText().catch(() => "");
+  const prefix = bodyText.match(PREFIX_PRICE_REGEX);
+  const suffix = bodyText.match(SUFFIX_PRICE_REGEX);
+  return {
+    price: prefix ? Number(prefix[2].replaceAll(",", "")) : suffix ? Number(suffix[1].replaceAll(",", "")) : null,
+    currency: prefix?.[1] ?? suffix?.[2] ?? null,
+  };
+}
+
 export interface DetectedProduct {
   url: string;
   name: string;
@@ -77,16 +109,22 @@ export async function detectAndExtractProduct(
 ): Promise<DetectedProduct | null> {
   // JSON-LD Product schema is the most reliable signal — prefer it when present.
   const jsonLdBlocks = await readJsonLdBlocks(page);
-  const productBlock = jsonLdBlocks.find((b) => isProductType(b?.["@type"]));
+  const productBlocks = jsonLdBlocks.filter((b) => isProductType(b?.["@type"]));
+  const productBlock = productBlocks.find((block) =>
+    sameDocumentUrl(block.url ?? block["@id"], url),
+  ) ?? (productBlocks.length === 1 && !isListingUrl(url) && !productBlocks[0].url && !productBlocks[0]["@id"]
+    ? productBlocks[0]
+    : undefined);
 
   if (productBlock) {
     const offer = normalizeOffer(productBlock.offers);
+    const visiblePrice = offer?.price === undefined ? await extractVisiblePrice(page) : null;
     return {
       url,
       name: productBlock.name ?? (await page.title()),
       description: productBlock.description ?? "",
-      price: offer?.price !== undefined ? Number(offer.price) : null,
-      currency: offer?.priceCurrency ?? null,
+      price: offer?.price !== undefined ? Number(offer.price) : visiblePrice?.price ?? null,
+      currency: offer?.priceCurrency ?? visiblePrice?.currency ?? null,
       images: normalizeImages(productBlock.image),
       sku: productBlock.sku,
     };
@@ -99,24 +137,7 @@ export async function detectAndExtractProduct(
     .getAttribute("content")
     .catch(() => null);
 
-  const bodyText = await page
-    .locator("body")
-    .innerText()
-    .catch(() => "");
-  const priceText = await page
-    .locator('[itemprop="price"], .product-price, [class*="price"]')
-    .first()
-    .innerText()
-    .catch(() => "");
-  const priceSource = priceText || bodyText;
-  const prefixPriceMatch = priceSource.match(PREFIX_PRICE_REGEX);
-  const suffixPriceMatch = priceSource.match(SUFFIX_PRICE_REGEX);
-  const price = prefixPriceMatch
-    ? Number(prefixPriceMatch[2].replaceAll(",", ""))
-    : suffixPriceMatch
-      ? Number(suffixPriceMatch[1].replaceAll(",", ""))
-      : null;
-  const currency = prefixPriceMatch?.[1] ?? suffixPriceMatch?.[2] ?? null;
+  const { price, currency } = await extractVisiblePrice(page);
   const hasAddToCartButton =
     (await page
       .locator(ADD_TO_CART_SELECTOR)

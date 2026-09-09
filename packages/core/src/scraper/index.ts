@@ -27,14 +27,16 @@ export async function scrapeSite(
   uploadImage?: (url: string) => Promise<string>,
 ): Promise<ScrapeResult> {
   const options = ScrapeOptionsSchema.parse(rawOptions);
-  const origin = new URL(options.baseUrl).origin;
+  const entryUrl = new URL(options.baseUrl);
+  const origin = entryUrl.origin;
   const robots = await fetchRobotsRules(origin);
 
-  // Discover more URLs than maxPages so product-like ones can be prioritized before slicing.
-  const rawSitemapUrls = await discoverSitemapUrls(
-    origin,
-    Math.min(options.maxPages * 5, 500),
-  );
+  // A category, catalog, or search URL expresses a narrower user intent than the
+  // site's global sitemap. Crawl that exact page instead of returning unrelated products.
+  const useSitemap = entryUrl.pathname === "/" && entryUrl.search === "";
+  const rawSitemapUrls = useSitemap
+    ? await discoverSitemapUrls(origin, Math.min(options.maxPages * 5, 500))
+    : [];
   const allowedSitemapUrls = rawSitemapUrls.filter((url) => {
     try {
       const parsed = new URL(url);
