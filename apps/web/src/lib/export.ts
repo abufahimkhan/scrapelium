@@ -9,7 +9,7 @@ type Product = {
   price: number | string | null;
   currency: string | null;
   images: string[];
-  sku: string | null;
+  sku?: string | null;
 };
 
 const FIELDS = [
