@@ -1,7 +1,17 @@
 "use client";
 
-import type { Product } from "@scrapelium/core";
 import { downloadBlob, downloadText, toCSV, toJSON, toXLSXBlob } from "@/lib/export";
+
+type Product = {
+    id: string;
+    url: string;
+    name: string;
+    description: string;
+    price: number | null;
+    currency: string | null;
+    images: string[];
+    sku?: string | null;
+};
 
 export function ExportButtons({ products }: { readonly products: Product[] }) {
     if (products.length === 0) return null;
