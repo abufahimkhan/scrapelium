@@ -40,6 +40,9 @@ export default function DownloadPage() {
                     <p className="subtitle">
                         A fast desktop workspace for extracting, reviewing, importing, and exporting e-commerce catalogs.
                     </p>
+                    <a className="primary-button mt-7 inline-flex items-center no-underline" href="/scrape">
+                        Open functional workspace
+                    </a>
                 </header>
 
                 <section className="mt-12 grid gap-3 md:grid-cols-3">
