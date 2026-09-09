@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 
 type Platform = "Windows" | "macOS" | "Linux" | "";
 
-const releaseUrl = "https://github.com/abufahimkhan/scrapelium/releases/latest";
+const releaseTag = "v1.0.1";
+const releaseUrl = `https://github.com/abufahimkhan/scrapelium/releases/tag/${releaseTag}`;
+const windowsDownloadUrl = `https://github.com/abufahimkhan/scrapelium/releases/download/${releaseTag}/Scrapelium_0.1.0_x64-setup.exe`;
 const installerUrls = {
-    Windows: "https://github.com/abufahimkhan/scrapelium/releases/latest/download/Scrapelium_0.1.0_x64-setup.exe",
+    Windows: windowsDownloadUrl,
     macOS: releaseUrl,
     Linux: releaseUrl,
 } as const;
