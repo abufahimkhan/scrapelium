@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "concurrently \"pnpm --filter @scrapelium/server dev\" \"pnpm --filter @scrapelium/web dev\"",
         "test:scrape": "pnpm --filter @scrapelium/core test:scrape",
+        "build": "pnpm build:vercel",
         "build:core": "pnpm --filter @scrapelium/core build",
         "build:vercel": "pnpm build:core && pnpm --filter @scrapelium/web build",
         "build:desktop:resources": "node scripts/stage-desktop-resources.mjs",
