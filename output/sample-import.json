@@ -1,0 +1,35 @@
+[
+    {
+        "id": "T1",
+        "url": "https://example.com/products/red-mug",
+        "name": "Red Coffee Mug",
+        "description": "A sturdy ceramic mug",
+        "price": 12.5,
+        "currency": "USD",
+        "images": [
+            "https://example.com/img/red-mug.jpg"
+        ],
+        "sku": "T1"
+    },
+    {
+        "id": "T2",
+        "url": "https://example.com/products/blue-mug",
+        "name": "Blue Coffee Mug",
+        "description": "Another ceramic mug",
+        "price": 9.99,
+        "currency": "USD",
+        "images": [
+            "https://example.com/img/blue-mug.jpg",
+            "https://example.com/img/blue-mug-2.jpg"
+        ],
+        "sku": "T2"
+    },
+    {
+        "id": "T3",
+        "url": "https://example.com/products/broken",
+        "description": "This row is missing the required 'name' field on purpose",
+        "price": 5,
+        "currency": "USD",
+        "images": []
+    }
+]

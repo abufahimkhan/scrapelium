@@ -4,7 +4,9 @@ import { mkdirSync, writeFileSync } from "node:fs";
 
 const baseUrl = process.argv[2];
 if (!baseUrl) {
-  console.error("Usage: pnpm test:scrape <url> [maxPages] [--upload-images] [--export=json|csv|xlsx]");
+  console.error(
+    "Usage: pnpm test:scrape <url> [maxPages] [--upload-images] [--export=json|csv|xlsx]",
+  );
   process.exit(1);
 }
 
@@ -37,10 +39,11 @@ if (exportFormat) {
   } else if (exportFormat === "xlsx") {
     writeFileSync(outPath, toXLSX(result.products));
   } else {
-    console.error(`Unknown export format "${exportFormat}". Use json, csv, or xlsx.`);
+    console.error(
+      `Unknown export format "${exportFormat}". Use json, csv, or xlsx.`,
+    );
     process.exit(1);
   }
 
   console.log(`Exported ${result.products.length} products to ${outPath}`);
 }
-

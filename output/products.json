@@ -1,0 +1,50 @@
+[
+  {
+    "id": "MH09",
+    "url": "https://www.scrapingcourse.com/ecommerce/product/abominable-hoodie/",
+    "name": "Abominable Hoodie",
+    "description": "This is a variable product called a Abominable Hoodie",
+    "price": 69,
+    "currency": "USD",
+    "images": [
+      "https://www.scrapingcourse.com/ecommerce/wp-content/uploads/2024/03/mh09-blue_main.jpg"
+    ],
+    "sku": "MH09"
+  },
+  {
+    "id": "WJ08",
+    "url": "https://www.scrapingcourse.com/ecommerce/product/adrienne-trek-jacket/",
+    "name": "Adrienne Trek Jacket",
+    "description": "This is a variable product called a Adrienne Trek Jacket",
+    "price": 57,
+    "currency": "USD",
+    "images": [
+      "https://www.scrapingcourse.com/ecommerce/wp-content/uploads/2024/03/wj08-gray_main.jpg"
+    ],
+    "sku": "WJ08"
+  },
+  {
+    "id": "WP07",
+    "url": "https://www.scrapingcourse.com/ecommerce/product/aeon-capri/",
+    "name": "Aeon Capri",
+    "description": "This is a variable product called a Aeon Capri",
+    "price": 48,
+    "currency": "USD",
+    "images": [
+      "https://www.scrapingcourse.com/ecommerce/wp-content/uploads/2024/03/wp07-black_main.jpg"
+    ],
+    "sku": "WP07"
+  },
+  {
+    "id": "MS01",
+    "url": "https://www.scrapingcourse.com/ecommerce/product/aero-daily-fitness-tee/",
+    "name": "Aero Daily Fitness Tee",
+    "description": "This is a variable product called a Aero Daily Fitness Tee",
+    "price": 24,
+    "currency": "USD",
+    "images": [
+      "https://www.scrapingcourse.com/ecommerce/wp-content/uploads/2024/03/ms01-blue_main.jpg"
+    ],
+    "sku": "MS01"
+  }
+]

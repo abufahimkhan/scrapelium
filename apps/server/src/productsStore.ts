@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { existsSync } from "node:fs";
 import type { Product } from "@scrapelium/core";
 
-const DB_PATH = process.env.SCRAPELIUM_DB_PATH ?? "../../data/app.db";
+export const DB_PATH = process.env.SCRAPELIUM_DB_PATH ?? "../../data/app.db";
 
 interface ProductRow {
   id: string;
@@ -46,4 +46,9 @@ export function refreshProductsCache(): Product[] {
 
 export function getCachedProducts(): Product[] {
   return cachedProducts;
+}
+
+// Used by the reverse-flow import (POST /api/import) to populate the same store GET /api/products reads from.
+export function setProducts(products: Product[]): void {
+  cachedProducts = products;
 }
