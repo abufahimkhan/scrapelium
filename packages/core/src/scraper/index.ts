@@ -24,6 +24,7 @@ export interface ScrapeResult {
 
 export async function scrapeSite(
   rawOptions: Partial<ScrapeOptions> & { baseUrl: string },
+  uploadImage?: (url: string) => Promise<string>,
 ): Promise<ScrapeResult> {
   const options = ScrapeOptionsSchema.parse(rawOptions);
   const origin = new URL(options.baseUrl).origin;
@@ -79,7 +80,10 @@ export async function scrapeSite(
   }
 
   if (options.uploadImages) {
-    products = await uploadProductImages(products);
+    if (!uploadImage) {
+      throw new Error("An active storage account is required to mirror images");
+    }
+    products = await uploadProductImages(products, uploadImage);
   }
 
   const db = createProductsDb(options.dbPath);

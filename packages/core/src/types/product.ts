@@ -19,7 +19,7 @@ export const ScrapeOptionsSchema = z.object({
   maxDepth: z.number().int().min(0).max(10).default(3),
   delayMs: z.number().int().min(0).default(500),
   dbPath: z.string().default("./data/app.db"),
-  // Opt-in: upload product images to Cloudinary instead of keeping the original URLs.
+  // Opt-in: mirror product images through the active storage provider.
   uploadImages: z.boolean().default(false),
 });
 

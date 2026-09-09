@@ -26,6 +26,11 @@ export function refreshProductsCache(): Product[] {
 
   const db = new Database(DB_PATH, { readonly: true });
   try {
+    const hasProducts = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='products'").get();
+    if (!hasProducts) {
+      cachedProducts = [];
+      return cachedProducts;
+    }
     const rows = db.prepare("SELECT * FROM products").all() as ProductRow[];
     cachedProducts = rows.map((row) => ({
       id: row.id,

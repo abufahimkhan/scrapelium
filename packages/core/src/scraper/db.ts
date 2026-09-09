@@ -1,18 +1,17 @@
 import Database from "better-sqlite3";
-import { existsSync, mkdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { Product } from "../types/product.js";
 
-// Session storage only: the DB file is wiped and recreated on every scrape run.
+// Keep the database file itself intact because it also contains workspace settings.
+// Only the product snapshot is replaced for a new scrape.
 export function createProductsDb(dbPath: string): Database.Database {
   const dir = dirname(dbPath);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  if (existsSync(dbPath)) rmSync(dbPath);
-
   const db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
   db.exec(`
-    CREATE TABLE products (
+    CREATE TABLE IF NOT EXISTS products (
       id TEXT PRIMARY KEY,
       url TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -22,6 +21,7 @@ export function createProductsDb(dbPath: string): Database.Database {
       images TEXT,
       sku TEXT
     );
+    DELETE FROM products;
   `);
   return db;
 }

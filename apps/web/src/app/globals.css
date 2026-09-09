@@ -34,9 +34,71 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
 	font: inherit;
 }
+
+.backend-gate {
+	display: grid;
+	place-items: center;
+}
+
+.backend-gate .scan-loader {
+	width: min(460px, calc(100% - 32px));
+	margin: 0;
+}
+
+.storage-account {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 18px;
+	margin-top: 24px;
+	padding: 14px 16px;
+	border: 1px solid var(--line);
+	border-radius: 7px;
+	background: rgba(8, 19, 31, 0.58);
+}
+
+.storage-account strong {
+	display: block;
+	margin-top: 5px;
+	font-size: 13px;
+}
+
+.storage-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.danger-button { color: #ff9ba4; }
+
+.modal-backdrop {
+	position: fixed;
+	z-index: 20;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 20px;
+	background: rgba(2, 8, 14, 0.78);
+	backdrop-filter: blur(8px);
+}
+
+.credential-modal {
+	width: min(520px, 100%);
+	border: 1px solid rgba(73, 229, 208, 0.28);
+	border-radius: 8px;
+	background: var(--panel-solid);
+	box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58);
+}
+
+.credential-modal h2 { margin: 6px 0 0; font-size: 18px; }
+.modal-close { border: 0; color: var(--muted); background: transparent; font-size: 26px; cursor: pointer; }
+.credential-fields { display: grid; gap: 14px; padding: 20px; }
+.credential-json { min-height: 150px; resize: vertical; font-family: Consolas, monospace; font-size: 11px; }
 
 ::selection {
 	color: #06121c;
@@ -505,8 +567,11 @@ input {
 	}
 
 	.panel-topline,
-	.results-heading {
+	.results-heading,
+	.storage-account {
 		align-items: flex-start;
 		flex-direction: column;
 	}
+
+	.storage-actions { justify-content: flex-start; }
 }

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { API_BASE } from "@/lib/api";
+import { apiFetch, waitForBackend } from "@/lib/api";
 import { ProductTable } from "@/components/ProductTable";
 import { ExportButtons } from "@/components/ExportButtons";
+import { StorageAccount, type StorageProvider } from "@/components/StorageAccount";
 
 type Product = {
     id: string;
@@ -35,11 +36,14 @@ interface ImportResponse {
 
 export default function Home() {
     const [tab, setTab] = useState<Tab>("scrape");
+    const [backendState, setBackendState] = useState<"connecting" | "ready" | "error">("connecting");
+    const [backendError, setBackendError] = useState("");
+    const [storageStatus, setStorageStatus] = useState<{ activeProvider: StorageProvider | null; connected: boolean }>({ activeProvider: null, connected: false });
 
     useEffect(() => {
-        if (window.location.pathname === "/") {
-            window.location.replace("/download");
-        }
+        waitForBackend().then(() => setBackendState("ready")).catch((error) => {
+            setBackendError((error as Error).message); setBackendState("error");
+        });
     }, []);
 
     // --- Tab 1: scrape ---
@@ -62,7 +66,8 @@ export default function Home() {
         setJob(null);
 
         try {
-            const res = await fetch(`${API_BASE}/api/scrape`, {
+            if (uploadImages && !storageStatus.connected) throw new Error("Connect a Cloudinary or Google Cloud account before mirroring images");
+            const res = await apiFetch("/api/scrape", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ baseUrl: url, maxPages, uploadImages }),
@@ -76,7 +81,7 @@ export default function Home() {
 
             if (pollRef.current) clearInterval(pollRef.current);
             pollRef.current = setInterval(async () => {
-                const statusRes = await fetch(`${API_BASE}/api/scrape/${newJobId}`);
+                const statusRes = await apiFetch(`/api/scrape/${newJobId}`);
                 const statusBody = (await statusRes.json()) as ScrapeJob;
                 setJob(statusBody);
                 if (statusBody.status === "done" || statusBody.status === "error") {
@@ -101,13 +106,13 @@ export default function Home() {
         try {
             const formData = new FormData();
             formData.append("file", file);
-            const res = await fetch(`${API_BASE}/api/import`, { method: "POST", body: formData });
+            const res = await apiFetch("/api/import", { method: "POST", body: formData });
             const body = (await res.json()) as ImportResponse;
             if (!res.ok && body.imported === undefined) {
                 throw new Error("Import failed");
             }
 
-            const productsRes = await fetch(`${API_BASE}/api/products`);
+            const productsRes = await apiFetch("/api/products");
             const products = (await productsRes.json()) as Product[];
 
             setImportResult({ ...body, products });
@@ -121,6 +126,10 @@ export default function Home() {
     const isScraping = job?.status === "running" || job?.status === "pending";
     const activeProducts = tab === "scrape" ? scrapedProducts : importResult?.products ?? [];
     const activeCount = activeProducts.length;
+
+    if (backendState !== "ready") {
+        return <main className="app-shell backend-gate"><div className="scan-loader" role="status"><span className="scan-loader-orbit" /><div><strong>{backendState === "error" ? "Local engine unavailable" : "Starting local engine"}</strong><p>{backendState === "error" ? backendError : "Waiting for the secure backend connection…"}</p></div></div></main>;
+    }
 
     return (
         <main className="app-shell">
@@ -137,6 +146,8 @@ export default function Home() {
                         LOCAL ENGINE ONLINE
                     </div>
                 </header>
+
+                <StorageAccount onStatusChange={setStorageStatus} />
 
                 <div className="tab-list" role="tablist" aria-label="Scrapelium actions">
                     <button
@@ -192,7 +203,7 @@ export default function Home() {
                                     checked={uploadImages}
                                     onChange={(e) => setUploadImages(e.target.checked)}
                                 />
-                                <span>Cloudinary mirror</span>
+                                <span>{storageStatus.activeProvider === "gcs" ? "Google Cloud mirror" : "Cloudinary mirror"}</span>
                             </label>
                             <button
                                 type="button"

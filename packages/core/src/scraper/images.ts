@@ -1,5 +1,4 @@
 import type { Product } from "../types/product.js";
-import { uploadToCloudinary } from "./cloudinary.js";
 import { runInBatches } from "./concurrency.js";
 
 export const IMAGE_UPLOAD_CONCURRENCY = 3;
@@ -14,6 +13,7 @@ interface ImageRef {
 // (not per-product), so the cap holds regardless of how many images a product has.
 export async function uploadProductImages(
   products: Product[],
+  uploadImage: (url: string) => Promise<string>,
 ): Promise<Product[]> {
   const refs: ImageRef[] = [];
   products.forEach((product, productIndex) => {
@@ -27,7 +27,7 @@ export async function uploadProductImages(
     IMAGE_UPLOAD_CONCURRENCY,
     async (ref) => {
       try {
-        return { ...ref, url: await uploadToCloudinary(ref.url) };
+        return { ...ref, url: await uploadImage(ref.url) };
       } catch (err) {
         console.warn(
           `[scrapelium] image upload failed for ${ref.url}:`,
