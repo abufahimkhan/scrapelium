@@ -4,14 +4,17 @@
     "version": "0.0.1",
     "packageManager": "pnpm@9.12.0",
     "scripts": {
+        "dev": "concurrently \"pnpm --filter @scrapelium/server dev\" \"pnpm --filter @scrapelium/web dev\"",
         "test:scrape": "pnpm --filter @scrapelium/core test:scrape",
         "build:core": "pnpm --filter @scrapelium/core build",
+        "build:vercel": "pnpm build:core && pnpm --filter @scrapelium/web build",
         "build:desktop:resources": "node scripts/stage-desktop-resources.mjs",
         "tauri": "tauri",
         "tauri:dev": "node scripts/run-tauri.mjs dev",
         "tauri:build": "node scripts/run-tauri.mjs build"
     },
     "devDependencies": {
-        "@tauri-apps/cli": "^2.11.4"
+        "@tauri-apps/cli": "^2.11.4",
+        "concurrently": "^9.2.1"
     }
 }

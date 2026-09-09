@@ -37,21 +37,15 @@ pnpm build:core
 
 ## Run the App
 
-Open two terminals in the repository root.
-
-In the first terminal, start the local API:
+After installation, run this single command from the repository root:
 
 ```powershell
-pnpm --filter @scrapelium/server dev
+pnpm dev
 ```
 
-In the second terminal, start the web app:
+Then open http://localhost:3000 in your browser. This starts both the local API on port `4000` and the web app on port `3000`.
 
-```powershell
-pnpm --filter @scrapelium/web dev
-```
-
-Open http://localhost:3000 in your browser. The API runs at http://localhost:4000.
+To stop both services, press `Ctrl+C` in that terminal.
 
 ## Build a Desktop Installer
 
@@ -73,6 +67,19 @@ pnpm tauri:dev
 ## Download Landing Page
 
 `/download` is a static Next.js route designed for Vercel. It detects the visitor's operating system and highlights the appropriate installer link. The download links point to the GitHub Releases latest-release URL, where installers can be uploaded after each desktop build.
+
+## Deploy the Download Page to Vercel
+
+Yes: visitors to your Vercel URL can download Scrapelium. The root [vercel.json](vercel.json) builds only the static Next.js site and deliberately excludes `apps/server`, because scraping and SQLite run inside the desktop app rather than Vercel.
+
+1. Push this repository to GitHub.
+2. In Vercel, select **Add New Project** and import the repository.
+3. Keep the project root directory as the repository root.
+4. Deploy. Vercel uses `pnpm build:vercel` and publishes `apps/web/out`.
+5. Visit `https://your-project.vercel.app/download` to see the download page.
+6. Upload the generated installers from `src-tauri/target/release/bundle` to a GitHub Release. The download buttons already point to the latest release.
+
+The Vercel deployment is a download page only. The main scraper screen requires the local desktop app or `pnpm dev`; it cannot scrape from Vercel because it depends on local Playwright, Express, and SQLite.
 
 ## Scrape a Store
 
