@@ -1,4 +1,4 @@
-use std::{fs::create_dir_all, io::{Read, Write}, net::{TcpListener, TcpStream}, process::{Child, Command}, sync::Mutex, thread, time::{Duration, Instant}};
+use std::{fs::{create_dir_all, write}, io::{Read, Write}, net::{TcpListener, TcpStream}, process::{Child, Command}, sync::Mutex, thread, time::{Duration, Instant}};
 use tauri::Manager;
 
 struct ServerProcess(Mutex<Child>);
@@ -72,7 +72,16 @@ fn start_server(app: &tauri::App) -> Result<(Child, String), Box<dyn std::error:
 pub fn run() {
   tauri::Builder::default()
     .setup(|app| {
-      let (child, url) = start_server(app)?;
+      let (child, url) = match start_server(app) {
+        Ok(server) => server,
+        Err(error) => {
+          if let Ok(data_dir) = app.path().app_local_data_dir() {
+            let _ = create_dir_all(&data_dir);
+            let _ = write(data_dir.join("startup-error.log"), error.to_string());
+          }
+          return Err(error);
+        }
+      };
       app.manage(ServerProcess(Mutex::new(child)));
       app.manage(BackendUrl(url));
       if cfg!(debug_assertions) {

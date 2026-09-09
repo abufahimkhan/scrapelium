@@ -1,38 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
-type Platform = "Windows" | "macOS" | "Linux" | "";
-
-const releaseTag = "v1.0.1";
-const releaseUrl = `https://github.com/abufahimkhan/scrapelium/releases/tag/${releaseTag}`;
-const windowsDownloadUrl = `https://github.com/abufahimkhan/scrapelium/releases/download/${releaseTag}/Scrapelium_0.1.0_x64-setup.exe`;
-const installerUrls = {
-    Windows: windowsDownloadUrl,
-    macOS: releaseUrl,
-    Linux: releaseUrl,
-} as const;
-
-function detectPlatform(userAgent: string): Platform {
-    if (/windows/i.test(userAgent)) return "Windows";
-    if (/macintosh|mac os x/i.test(userAgent)) return "macOS";
-    if (/linux/i.test(userAgent)) return "Linux";
-    return "";
-}
+const releaseUrl = "https://github.com/abufahimkhan/scrapelium/releases";
 
 export default function DownloadPage() {
-    const [platform, setPlatform] = useState<Platform>("");
-
-    useEffect(() => {
-        setPlatform(detectPlatform(navigator.userAgent));
-    }, []);
-
-    const downloads = [
-        { name: "Windows", detail: "MSI installer", badge: "WIN" },
-        { name: "macOS", detail: "DMG installer", badge: "MAC" },
-        { name: "Linux", detail: "AppImage / DEB", badge: "LIN" },
-    ] as const;
-
     return (
         <main className="app-shell">
             <div className="content-wrap">
@@ -47,28 +15,16 @@ export default function DownloadPage() {
                     </a>
                 </header>
 
-                <section className="mt-12 grid gap-3 md:grid-cols-3">
-                    {downloads.map((download) => {
-                        const isRecommended = platform === download.name;
-                        return (
-                            <a
-                                key={download.name}
-                                href={installerUrls[download.name]}
-                                download={download.name === "Windows" ? true : undefined}
-                                className={`command-panel block p-5 transition hover:-translate-y-1 hover:border-teal-300/50 ${isRecommended ? "border-teal-300/70 bg-teal-300/10" : ""}`}
-                            >
-                                <div className="flex items-center justify-between">
-                                    <span className="eyebrow">{download.badge}</span>
-                                    {isRecommended && <span className="status-chip">Recommended</span>}
-                                </div>
-                                <h2 className="mt-9 text-xl font-semibold text-slate-100">{download.name}</h2>
-                                <p className="mt-1 text-sm text-slate-400">{download.detail}</p>
-                                <span className="mt-6 inline-block text-xs font-bold uppercase tracking-wider text-teal-300">
-                                    Download latest
-                                </span>
-                            </a>
-                        );
-                    })}
+                <section className="mt-12 max-w-2xl">
+                    <a href={releaseUrl} className="command-panel block p-6 transition hover:-translate-y-1 hover:border-teal-300/50">
+                        <div className="flex items-center justify-between">
+                            <span className="eyebrow">Desktop release</span>
+                            <span className="status-chip">Latest</span>
+                        </div>
+                        <h2 className="mt-9 text-xl font-semibold text-slate-100">Download Scrapelium</h2>
+                        <p className="mt-1 text-sm text-slate-400">Open the official releases page to get the latest installer.</p>
+                        <span className="mt-6 inline-block text-xs font-bold uppercase tracking-wider text-teal-300">View downloads</span>
+                    </a>
                 </section>
 
                 <p className="mt-8 max-w-2xl text-sm leading-6 text-slate-500">
