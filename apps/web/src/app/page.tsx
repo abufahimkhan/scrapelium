@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Product } from "@scrapelium/core";
 import { API_BASE } from "@/lib/api";
 import { ProductTable } from "@/components/ProductTable";
 import { ExportButtons } from "@/components/ExportButtons";
+
+type Product = {
+    id: string;
+    url: string;
+    name: string;
+    description: string;
+    price: number | null;
+    currency: string | null;
+    images: string[];
+    sku?: string | null;
+};
 
 type Tab = "scrape" | "import";
 
@@ -25,6 +35,12 @@ interface ImportResponse {
 
 export default function Home() {
     const [tab, setTab] = useState<Tab>("scrape");
+
+    useEffect(() => {
+        if (window.location.pathname === "/") {
+            window.location.replace("/download");
+        }
+    }, []);
 
     // --- Tab 1: scrape ---
     const [url, setUrl] = useState("");
@@ -189,6 +205,16 @@ export default function Home() {
                         </div>
 
                         {scrapeError && <p className="job-status error-status">{scrapeError}</p>}
+
+                        {isScraping && (
+                            <div className="scan-loader" role="status" aria-live="polite">
+                                <span className="scan-loader-orbit" aria-hidden="true" />
+                                <div>
+                                    <strong>Scanning storefront</strong>
+                                    <p>Discovering product pages and normalizing catalog data locally.</p>
+                                </div>
+                            </div>
+                        )}
 
                         {job && (
                             <p className={`job-status ${job.status === "error" ? "error-status" : ""}`}>

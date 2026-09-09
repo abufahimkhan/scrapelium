@@ -3,7 +3,10 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Scrapelium",
-    description: "Local-first e-commerce scraper",
+    description: "A local-first desktop workspace for e-commerce product data.",
+    icons: {
+        icon: "/favicon.svg",
+    },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

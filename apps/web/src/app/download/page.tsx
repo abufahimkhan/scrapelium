@@ -5,6 +5,11 @@ import { useEffect, useState } from "react";
 type Platform = "Windows" | "macOS" | "Linux" | "";
 
 const releaseUrl = "https://github.com/abufahimkhan/scrapelium/releases/latest";
+const installerUrls = {
+    Windows: "https://github.com/abufahimkhan/scrapelium/releases/latest/download/Scrapelium_0.1.0_x64-setup.exe",
+    macOS: releaseUrl,
+    Linux: releaseUrl,
+} as const;
 
 function detectPlatform(userAgent: string): Platform {
     if (/windows/i.test(userAgent)) return "Windows";
@@ -43,7 +48,8 @@ export default function DownloadPage() {
                         return (
                             <a
                                 key={download.name}
-                                href={releaseUrl}
+                                href={installerUrls[download.name]}
+                                download={download.name === "Windows" ? true : undefined}
                                 className={`command-panel block p-5 transition hover:-translate-y-1 hover:border-teal-300/50 ${isRecommended ? "border-teal-300/70 bg-teal-300/10" : ""}`}
                             >
                                 <div className="flex items-center justify-between">

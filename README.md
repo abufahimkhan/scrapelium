@@ -74,10 +74,12 @@ Yes: visitors to your Vercel URL can download Scrapelium. The root [vercel.json]
 
 1. Push this repository to GitHub.
 2. In Vercel, select **Add New Project** and import the repository.
-3. Keep the project root directory as the repository root.
-4. Deploy. Vercel uses `pnpm build:vercel` and publishes `apps/web/out`.
-5. Visit `https://your-project.vercel.app/download` to see the download page.
-6. Upload the generated installers from `src-tauri/target/release/bundle` to a GitHub Release. The download buttons already point to the latest release.
+3. Set **Root Directory** to `apps/web`.
+4. Set **Build Command** to `pnpm build:vercel`.
+5. Set **Output Directory** to `out`.
+6. Keep **Install Command** as `pnpm install --frozen-lockfile`.
+7. Deploy. The first page is `https://your-project.vercel.app/download`.
+8. Upload the generated installers from `src-tauri/target/release/bundle` to a GitHub Release. The Windows button points directly to the `.exe`; macOS and Linux currently use the release page until those installers are published.
 
 The Vercel deployment is a download page only. The main scraper screen requires the local desktop app or `pnpm dev`; it cannot scrape from Vercel because it depends on local Playwright, Express, and SQLite.
 

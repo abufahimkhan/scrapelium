@@ -278,6 +278,47 @@ input {
 	text-transform: uppercase;
 }
 
+.scan-loader {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin-top: 16px;
+	padding: 15px 16px;
+	border: 1px solid rgba(73, 229, 208, 0.32);
+	border-radius: 6px;
+	background: linear-gradient(100deg, rgba(73, 229, 208, 0.12), rgba(91, 157, 255, 0.08));
+	box-shadow: 0 0 28px rgba(73, 229, 208, 0.08);
+}
+
+.scan-loader strong {
+	display: block;
+	color: var(--ink);
+	font-size: 13px;
+}
+
+.scan-loader p {
+	margin: 4px 0 0;
+	color: var(--muted);
+	font-size: 12px;
+}
+
+.scan-loader-orbit {
+	display: block;
+	width: 30px;
+	height: 30px;
+	flex: 0 0 30px;
+	border: 2px solid rgba(73, 229, 208, 0.2);
+	border-top-color: var(--cyan);
+	border-right-color: var(--blue);
+	border-radius: 50%;
+	box-shadow: 0 0 18px rgba(73, 229, 208, 0.32);
+	animation: scan-spin 850ms linear infinite;
+}
+
+@keyframes scan-spin {
+	to { transform: rotate(360deg); }
+}
+
 .error-status {
 	border-color: rgba(255, 119, 130, 0.35);
 	color: #ffb4bb;
