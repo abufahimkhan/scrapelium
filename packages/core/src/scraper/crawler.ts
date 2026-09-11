@@ -4,7 +4,11 @@ import {
   type Product,
   type ScrapeOptions,
 } from "../types/product.js";
-import { isPathAllowed, type RobotsRules } from "./robots.js";
+import {
+  fetchRobotsRules,
+  isPathAllowed,
+  type RobotsRules,
+} from "./robots.js";
 import { detectAndExtractProduct } from "./productDetector.js";
 
 const SKIP_EXTENSIONS =
@@ -20,6 +24,14 @@ const PRODUCT_PATH_HINTS = [
 export const CRAWL_CONCURRENCY = 4;
 const NAV_TIMEOUT_MS = 15000;
 const CLIENT_RENDER_SETTLE_MS = 1500;
+const SITE_HOST_PREFIXES = new Set([
+  "www",
+  "pages",
+  "m",
+  "mobile",
+  "shop",
+  "store",
+]);
 
 async function waitForClientRenderedContent(page: Page): Promise<void> {
   await page.waitForTimeout(CLIENT_RENDER_SETTLE_MS);
@@ -42,14 +54,34 @@ export function prioritizeProductUrls(urls: string[]): string[] {
   return [...productUrls, ...otherUrls];
 }
 
-function isVisitable(
+function canonicalSiteHost(hostname: string): string {
+  const labels = hostname.toLowerCase().split(".");
+  while (labels.length > 2 && SITE_HOST_PREFIXES.has(labels[0])) labels.shift();
+  return labels.join(".");
+}
+
+function isSameSite(candidate: URL, entryOrigin: string): boolean {
+  const entry = new URL(entryOrigin);
+  return (
+    (candidate.protocol === "http:" || candidate.protocol === "https:") &&
+    canonicalSiteHost(candidate.hostname) === canonicalSiteHost(entry.hostname)
+  );
+}
+
+async function isVisitable(
   url: string,
-  origin: string,
-  robots: RobotsRules,
-): boolean {
+  entryOrigin: string,
+  robotsByOrigin: Map<string, RobotsRules>,
+): Promise<boolean> {
   try {
     const parsed = new URL(url);
-    return parsed.origin === origin && isPathAllowed(parsed.pathname, robots);
+    if (!isSameSite(parsed, entryOrigin)) return false;
+    let rules = robotsByOrigin.get(parsed.origin);
+    if (!rules) {
+      rules = await fetchRobotsRules(parsed.origin);
+      robotsByOrigin.set(parsed.origin, rules);
+    }
+    return isPathAllowed(parsed.pathname, rules);
   } catch {
     return false;
   }
@@ -157,24 +189,20 @@ function takeBatch(
 
 // Routes newly-discovered links into one of two global queues so product-like URLs stay
 // ahead of category/pagination URLs across the *entire* crawl, not just within one batch.
-function enqueueLinks(
+async function enqueueLinks(
   results: VisitOutcome[],
   batch: QueueItem[],
   visited: Set<string>,
   origin: string,
-  robots: RobotsRules,
+  robotsByOrigin: Map<string, RobotsRules>,
   productQueue: QueueItem[],
   otherQueue: QueueItem[],
-): void {
+): Promise<void> {
   for (let i = 0; i < results.length; i++) {
     const nextDepth = batch[i].depth + 1;
     for (const link of results[i].links) {
-      if (
-        visited.has(link) ||
-        SKIP_EXTENSIONS.test(link) ||
-        !isVisitable(link, origin, robots)
-      )
-        continue;
+      if (visited.has(link) || SKIP_EXTENSIONS.test(link)) continue;
+      if (!(await isVisitable(link, origin, robotsByOrigin))) continue;
       visited.add(link);
       const item: QueueItem = { url: link, depth: nextDepth };
       (isLikelyProductUrl(link) ? productQueue : otherQueue).push(item);
@@ -197,6 +225,7 @@ export async function crawlAndExtract(
 
   const productQueue: QueueItem[] = [];
   const otherQueue: QueueItem[] = [];
+  const robotsByOrigin = new Map<string, RobotsRules>([[origin, robots]]);
   const seed: QueueItem = { url: options.baseUrl, depth: 0 };
   visited.add(seed.url);
   (isLikelyProductUrl(seed.url) ? productQueue : otherQueue).push(seed);
@@ -220,12 +249,12 @@ export async function crawlAndExtract(
     pagesVisited += results.length;
 
     for (const { product } of results) if (product) products.push(product);
-    enqueueLinks(
+    await enqueueLinks(
       results,
       batch,
       visited,
       origin,
-      robots,
+      robotsByOrigin,
       productQueue,
       otherQueue,
     );
