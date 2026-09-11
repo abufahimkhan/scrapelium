@@ -58,19 +58,34 @@ export function toXLSXBlob(products: Product[]): Blob {
   });
 }
 
-export function downloadBlob(blob: Blob, filename: string): void {
+function isDesktopApp(): boolean {
+  return "__TAURI_INTERNALS__" in window;
+}
+
+async function saveDesktopBlob(blob: Blob, filename: string): Promise<boolean> {
+  const { invoke } = await import("@tauri-apps/api/core");
+  const bytes = Array.from(new Uint8Array(await blob.arrayBuffer()));
+  return invoke<boolean>("save_export", { filename, bytes });
+}
+
+export async function downloadBlob(blob: Blob, filename: string): Promise<boolean> {
+  if (isDesktopApp()) return saveDesktopBlob(blob, filename);
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+  return true;
 }
 
-export function downloadText(
+export async function downloadText(
   text: string,
   filename: string,
   mime: string,
-): void {
-  downloadBlob(new Blob([text], { type: mime }), filename);
+): Promise<boolean> {
+  return downloadBlob(new Blob([text], { type: mime }), filename);
 }

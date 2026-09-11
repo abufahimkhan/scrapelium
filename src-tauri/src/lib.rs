@@ -1,6 +1,8 @@
 use std::{fs::{create_dir_all, write}, io::{Read, Write}, net::{TcpListener, TcpStream}, process::{Child, Command}, sync::Mutex, thread, time::{Duration, Instant}};
 use tauri::Manager;
 
+mod export;
+
 struct ServerProcess(Mutex<Child>);
 struct BackendUrl(String);
 
@@ -93,7 +95,7 @@ pub fn run() {
       }
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![backend_url])
+    .invoke_handler(tauri::generate_handler![backend_url, export::save_export])
     .build(tauri::generate_context!())
     .expect("error while building Tauri application")
     .run(|app, event| {
